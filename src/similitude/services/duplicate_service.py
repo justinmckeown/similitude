@@ -22,7 +22,6 @@ class DuplicateService:
     def __init__(self, index: IndexPort) -> None:
         self._index = index
 
-
     def clusters(self) -> Iterable[Sequence[Dict[str, Any]]]:
         """
         Return an iterable of duplicate clusters.
@@ -33,7 +32,5 @@ class DuplicateService:
           * Service may sort members for deterministic output.
         """
         for cluster in self._index.find_duplicates():
-            # Ensure derterministic order by path if adapter didn't already 
+            # Ensure derterministic order by path if adapter didn't already
             yield sorted(cluster, key=lambda r: (r.get("path") or "", r.get("id") or 0))
-        
-      

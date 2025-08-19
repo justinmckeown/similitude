@@ -6,11 +6,11 @@ from .report_service import ReportService
 
 
 __all__ = [
-    'ScanService',
-    'DuplicateService',
-    'SimilarityService',
-    'SimilarityEdge',
-    'LineageService',
-    'LineageEdge',
-    'ReportService',
+    "ScanService",
+    "DuplicateService",
+    "SimilarityService",
+    "SimilarityEdge",
+    "LineageService",
+    "LineageEdge",
+    "ReportService",
 ]

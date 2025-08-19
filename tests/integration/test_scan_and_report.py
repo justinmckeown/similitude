@@ -9,8 +9,8 @@ from similitude.ports.hasher import HasherPort
 
 # We reuse the lightweight hashers from the CLI wiring to keep the test realistic.
 from similitude.cli.app import PreHasher, SHA256Hasher
-from similitude.services import ScanService
 import inspect
+
 print("USING ScanService from:", ScanService.__module__)
 print("FILE:", inspect.getsourcefile(ScanService))
 
@@ -21,12 +21,12 @@ class LocalTestFS(FilesystemPort):
     def walk(self, root: Path) -> Iterator[Path]:
         root = Path(root)
         if root.is_file():
-            print(f'YIELD File: {root}')
+            print(f"YIELD File: {root}")
             yield root
             return
         for p in root.rglob("*"):
             if p.is_file():
-                print(f'YIELD file: {p}')
+                print(f"YIELD file: {p}")
                 yield p
 
     def stat(self, path: Path) -> dict:

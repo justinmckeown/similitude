@@ -2,6 +2,7 @@
 import logging
 import os
 
+
 def setup_logging() -> None:
     level_name = os.getenv("SIM_LOG_LEVEL", "INFO").upper()
     level = getattr(logging, level_name, logging.INFO)

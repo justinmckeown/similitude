@@ -20,7 +20,6 @@ from ..ports.index import IndexPort
 
 
 class ScanService:
-    
     """
     Orchestrates a file-system scan:
       - walks the filesystem
@@ -61,39 +60,39 @@ class ScanService:
     def scan(self, root: Path) -> int:
         """
         Scan a directory tree rooted at `root`.
-    
+
         Returns:
             Number of files processed (inserted or updated in the index).
         """
         root = Path(root)
         processed = 0
-    
+
         for path in self._fs.walk(root):
             p = Path(path)
-    
+
             # Optional safety; FilesystemPort.walk() should already yield files.
             try:
                 if not p.is_file():
                     continue
             except Exception:
                 continue
-            
+
             if self._ignored(p):
                 continue
-            
+
             # 1) Stat via FS port
             try:
                 meta = self._fs.stat(p)
             except Exception:
                 continue  # unreadable; skip
-            
+
             # 2) Upsert file row (count as processed once this succeeds).
             try:
                 file_id = self._index.upsert_file(meta)
                 processed += 1
             except Exception:
                 continue  # DB issue; skip
-            
+
             # 3) Hashing (non-fatal if it fails)
             pre_hash = None
             strong_hash = None
@@ -107,7 +106,7 @@ class ScanService:
                     strong_hash = self._strong_hasher.hash_stream(fh)
             except Exception:
                 pass
-            
+
             # 4) Upsert hashes (best-effort)
             try:
                 self._index.upsert_hashes(
@@ -121,5 +120,5 @@ class ScanService:
                 )
             except Exception:
                 pass  # non-fatal
-            
+
         return processed

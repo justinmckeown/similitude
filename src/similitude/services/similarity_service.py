@@ -11,7 +11,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import Iterable, Tuple
+from typing import Iterable
 
 from ..ports.index import IndexPort
 from ..ports.similarity import SimilarityPort
@@ -20,6 +20,7 @@ from ..ports.similarity import SimilarityPort
 @dataclass(frozen=True)
 class SimilarityEdge:
     """Represents a similarity relationship between two files."""
+
     file_id_a: int
     file_id_b: int
     score: float

@@ -1,5 +1,6 @@
 from similitude.adapters.index.sqlite_index import SQLiteIndex
 
+
 def test_find_duplicates_excludes_singletons(tmp_path):
     db = tmp_path / "test.db"
     index = SQLiteIndex(db)

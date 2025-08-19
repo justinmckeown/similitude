@@ -12,19 +12,18 @@
 
 import os
 from pathlib import Path
-from typing import Iterator, Iterable, Any, BinaryIO
+from typing import Iterator, BinaryIO
 
 
 import hashlib
-import time
 import typer
 
 from ..ports.filesystem import FilesystemPort
 from ..ports.hasher import HasherPort
-from ..ports.index import IndexPort
 from ..services import ScanService, ReportService
 from ..adapters.index.sqlite_index import SQLiteIndex
 from ..logging_config import setup_logging
+
 setup_logging()
 
 app = typer.Typer(help="Similitude CLI - File intelligence and duplicate detection")
@@ -33,6 +32,7 @@ app = typer.Typer(help="Similitude CLI - File intelligence and duplicate detecti
 # ------------------------------
 # Placeholder Adapters (stubs)
 # ------------------------------
+
 
 class LocalFS(FilesystemPort):
     """Minimal local filesystem adapter suitable for early wiring."""
@@ -74,6 +74,7 @@ class PreHasher(HasherPort):
     Fast pre-hash: BLAKE2b of the first N bytes, salted with file size.
     Not cryptographic for equality, but good for bucketing candidates.
     """
+
     def __init__(self, first_n: int = 1 << 20):  # default 1 MiB
         self._first_n = int(first_n)
 
@@ -120,11 +121,10 @@ class SHA256Hasher(HasherPort):
         return h.hexdigest()
 
 
-
-
 # ------------------------------
 # CLI Commands
 # ------------------------------
+
 
 def _wire(db_path: str) -> tuple[ScanService, ReportService]:
     """
@@ -132,9 +132,9 @@ def _wire(db_path: str) -> tuple[ScanService, ReportService]:
       LocalFS + PreHasher + SHA256Hasher + DummySQLiteIndex
     """
     fs = LocalFS()
-    pre = PreHasher(first_n=1 << 20)       # 1 MiB
+    pre = PreHasher(first_n=1 << 20)  # 1 MiB
     strong = SHA256Hasher()
-    index = SQLiteIndex(db_path)              
+    index = SQLiteIndex(db_path)
     scan = ScanService(fs, pre, strong, index)
     report = ReportService(index)
     return scan, report

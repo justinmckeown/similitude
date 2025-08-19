@@ -5,6 +5,7 @@ from similitude.cli.app import app
 
 runner = CliRunner()
 
+
 def test_cli_scan_and_report_roundtrip(tmp_path: Path):
     # Arrange
     root = tmp_path / "data"
@@ -26,7 +27,9 @@ def test_cli_scan_and_report_roundtrip(tmp_path: Path):
     result_scan = runner.invoke(app, ["scan", str(root), "--db", str(db)])
     assert result_scan.exit_code == 0
 
-    result_report = runner.invoke(app, ["report", "--db", str(db), "--output", str(out)])
+    result_report = runner.invoke(
+        app, ["report", "--db", str(db), "--output", str(out)]
+    )
     assert result_report.exit_code == 0
 
     # Assert

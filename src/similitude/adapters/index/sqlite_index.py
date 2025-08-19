@@ -143,7 +143,12 @@ class SQLiteIndex(IndexPort):
                 except sqlite3.Error as e:
                     logger.error(
                         "SQLiteIndex.upsert_file: SELECT strong identity failed",
-                        extra={"path": path, "device": device, "inode": inode, "err": str(e)},
+                        extra={
+                            "path": path,
+                            "device": device,
+                            "inode": inode,
+                            "err": str(e),
+                        },
                     )
                     raise
 
@@ -192,7 +197,12 @@ class SQLiteIndex(IndexPort):
             except sqlite3.Error as e:
                 logger.error(
                     "SQLiteIndex.upsert_file: SELECT fallback identity failed",
-                    extra={"path": path, "size": size, "mtime_ns": mtime_ns, "err": str(e)},
+                    extra={
+                        "path": path,
+                        "size": size,
+                        "mtime_ns": mtime_ns,
+                        "err": str(e),
+                    },
                 )
                 raise
 
@@ -207,7 +217,16 @@ class SQLiteIndex(IndexPort):
                             owner_id = ?, owner_name = ?, seen_at = ?
                         WHERE id = ?
                         """,
-                        (device, inode, ctime_ns, birthtime_ns, owner_id, owner_name, seen_at, file_id),
+                        (
+                            device,
+                            inode,
+                            ctime_ns,
+                            birthtime_ns,
+                            owner_id,
+                            owner_name,
+                            seen_at,
+                            file_id,
+                        ),
                     )
                 except sqlite3.Error as e:
                     logger.error(
@@ -230,12 +249,28 @@ class SQLiteIndex(IndexPort):
                                        ctime_ns, birthtime_ns, owner_id, owner_name, seen_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                    (device, inode, path, size, mtime_ns, ctime_ns, birthtime_ns, owner_id, owner_name, seen_at),
+                    (
+                        device,
+                        inode,
+                        path,
+                        size,
+                        mtime_ns,
+                        ctime_ns,
+                        birthtime_ns,
+                        owner_id,
+                        owner_name,
+                        seen_at,
+                    ),
                 )
             except sqlite3.IntegrityError as e:
                 logger.error(
                     "SQLiteIndex.upsert_file: INSERT integrity error",
-                    extra={"path": path, "device": device, "inode": inode, "err": str(e)},
+                    extra={
+                        "path": path,
+                        "device": device,
+                        "inode": inode,
+                        "err": str(e),
+                    },
                 )
                 raise
             except sqlite3.Error as e:
@@ -333,7 +368,10 @@ class SQLiteIndex(IndexPort):
                     """
                 )
             except sqlite3.Error as e:
-                logger.error("SQLiteIndex.find_duplicates: SELECT groups failed", extra={"err": str(e)})
+                logger.error(
+                    "SQLiteIndex.find_duplicates: SELECT groups failed",
+                    extra={"err": str(e)},
+                )
                 raise
 
             for row in cur.fetchall():

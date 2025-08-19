@@ -5,6 +5,7 @@ from similitude.adapters.index.sqlite_index import SQLiteIndex
 from similitude.ports.filesystem import FilesystemPort
 from typing import Iterator
 
+
 # Realistic local FS adapter (same contract as integration test)
 class LocalTestFS(FilesystemPort):
     def walk(self, root: Path) -> Iterator[Path]:
@@ -35,6 +36,7 @@ class LocalTestFS(FilesystemPort):
                     break
                 yield chunk
 
+
 def test_scan_respects_ignore_patterns(tmp_path: Path):
     data_dir = tmp_path / "data"
     data_dir.mkdir()
@@ -48,6 +50,7 @@ def test_scan_respects_ignore_patterns(tmp_path: Path):
     fs = LocalTestFS()
 
     from similitude.cli.app import PreHasher, SHA256Hasher
+
     pre = PreHasher(first_n=1024)
     strong = SHA256Hasher()
 

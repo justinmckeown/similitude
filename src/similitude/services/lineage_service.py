@@ -22,6 +22,7 @@ class LineageEdge:
     Represents a directional relationship (A -> B) in a file's evolution.
     Rationale can include timestamps, author hints, or similarity evidence.
     """
+
     parent_id: int
     child_id: int
     rationale: str = ""
