@@ -1,9 +1,7 @@
 # 🌀 Similitude
 
 [![CI](https://github.com/justinmckeown/similitude/actions/workflows/ci.yml/badge.svg)](https://github.com/justinmckeown/similitude/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/justinmckeown/similitude/branch/main/graph/badge.svg)](https://codecov.io/gh/justinmckeown/similitude)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
-![Lint: ruff](https://img.shields.io/badge/lint-ruff-informational)
 ![Types: mypy](https://img.shields.io/badge/types-mypy-informational)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 
