@@ -14,6 +14,7 @@ import os
 from pathlib import Path
 from typing import Iterator, Iterable, Any, BinaryIO
 
+
 import hashlib
 import time
 import typer
@@ -23,7 +24,8 @@ from ..ports.hasher import HasherPort
 from ..ports.index import IndexPort
 from ..services import ScanService, ReportService
 from ..adapters.index.sqlite_index import SQLiteIndex
-
+from ..logging_config import setup_logging
+setup_logging()
 
 app = typer.Typer(help="Similitude CLI - File intelligence and duplicate detection")
 
@@ -118,39 +120,6 @@ class SHA256Hasher(HasherPort):
         return h.hexdigest()
 
 
-# TODO: This could be deleted, if we don't need it in future dev for passing in wiritng (below)
-class DummySQLiteIndex(IndexPort):
-    """
-    In-memory placeholder for early wiring. This does NOT persist anywhere.
-    """
-    def __init__(self) -> None:
-        self._next_id = 1
-        self._files: dict[int, dict] = {}
-        self._hashes: dict[int, dict] = {}
-
-    def upsert_file(self, file_meta: dict) -> int:
-        # naive "upsert": always assign a new id (placeholder behavior)
-        file_id = self._next_id
-        self._next_id += 1
-        meta = dict(file_meta)
-        meta.setdefault("seen_at", int(time.time()))
-        self._files[file_id] = meta
-        return file_id
-
-    def upsert_hashes(self, file_id: int, hashes: dict) -> None:
-        self._hashes[file_id] = dict(hashes)
-
-    def find_duplicates(self) -> Iterable[Any]:
-        # group by strong_hash
-        bucket: dict[str, list[int]] = {}
-        for fid, h in self._hashes.items():
-            strong = h.get("strong_hash")
-            if strong:
-                bucket.setdefault(strong, []).append(fid)
-        # Yield clusters (as file dicts) where count > 1
-        for fids in bucket.values():
-            if len(fids) > 1:
-                yield [self._files[fid] | {"id": fid, **self._hashes.get(fid, {})} for fid in fids]
 
 
 # ------------------------------

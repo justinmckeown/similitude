@@ -25,8 +25,10 @@ dev = [
     "mypy>=1.8.0",
     ]
 
+
 [project.scripts]
 similitude = "similitude.cli.app:app"
 
-[tools.setuptools.packages.find]
+
+[tool.setuptools.packages.find]
 where = ["src"]
