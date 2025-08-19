@@ -9,6 +9,10 @@ from similitude.ports.hasher import HasherPort
 
 # We reuse the lightweight hashers from the CLI wiring to keep the test realistic.
 from similitude.cli.app import PreHasher, SHA256Hasher
+from similitude.services import ScanService
+import inspect
+print("USING ScanService from:", ScanService.__module__)
+print("FILE:", inspect.getsourcefile(ScanService))
 
 
 class LocalTestFS(FilesystemPort):
