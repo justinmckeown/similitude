@@ -12,7 +12,7 @@
 
 import os
 from pathlib import Path
-from typing import Iterator, BinaryIO
+from typing import Iterator, Optional, BinaryIO
 
 
 import hashlib
@@ -151,11 +151,51 @@ def scan(path: str, db: str = "similitude.db"):
 
 
 @app.command()
-def report(db: str = "similitude.db", output: str = "duplicates.json"):
+def report(
+    db: Path = typer.Option(
+        "similitude.db",
+        "--db",
+        help="Path to the SQLite index file.",
+        exists=False,
+        readable=True,
+        writable=True,
+        resolve_path=True,
+    ),
+    fmt: str = typer.Option(
+        "json",
+        "--fmt",
+        help="Output format.",
+        case_sensitive=False,
+    ),
+    out: Optional[Path] = typer.Option(
+        None,
+        "--out",
+        "--output",
+        help="Write report to this path. If a directory is provided, the file will be named 'duplicates.<fmt>' inside it. "
+             "If omitted entirely, defaults to './duplicates.<fmt>'.",
+        resolve_path=True,
+    ),
+):
     """
     Generate a duplicate report from the index.
     """
-    _, report_service = _wire(db)
-    out = Path(output)
-    report_service.write_duplicates(out, fmt="json")
-    typer.echo(f"Wrote duplicate report to {out} (placeholder)")
+    index = SQLiteIndex(db)
+    report = ReportService(index)
+
+    # Determine target path:
+    # - no --out  -> ./duplicates.<fmt>
+    # - --out DIR -> DIR/duplicates.<fmt>
+    # - --out FILE -> FILE
+    if out is None:
+        target = Path(f"duplicates.{fmt}")
+    else:
+        out = Path(out)
+        if out.exists() and out.is_dir():
+            target = out / f"duplicates.{fmt}"
+        else:
+            # If the path doesn't exist yet, we treat it as a file path.
+            # (ReportService will create parent dirs.)
+            target = out
+
+    written = report.write_duplicates(target, fmt=fmt)
+    typer.echo(f"Wrote {fmt} report to {written}")

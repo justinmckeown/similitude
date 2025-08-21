@@ -27,12 +27,8 @@ class ReportService:
     def __init__(self, index: IndexPort) -> None:
         self._index = index
 
-    def write_duplicates(
-        self,
-        output_path: Path,
-        *,
-        fmt: Literal["csv", "json", "ndjson"] = "json",
-    ) -> Path:
+
+    def write_duplicates( self, out: Path, fmt: Literal['csv', 'json', 'ndjson']='json') -> Path:
         """
         Write an exact-duplicate report to `output_path` in the specified format.
 
@@ -44,24 +40,24 @@ class ReportService:
         """
         clusters = list(DuplicateService(self._index).clusters())
 
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        out = Path(out) #FIXME: don't need this line I think 
+        out.parent.mkdir(parents=True, exist_ok=True)
 
         if fmt == "json":
-            with open(output_path, "w", encoding="utf-8") as f:
+            with open(out, "w", encoding="utf-8") as f:
                 json.dump(clusters, f, ensure_ascii=False, indent=2)
-            return output_path
+            return out
 
         if fmt == "ndjson":
-            with open(output_path, "w", encoding="utf-8") as f:
+            with open(out, "w", encoding="utf-8") as f:
                 for cluster in clusters:
                     f.write(json.dumps(cluster, ensure_ascii=False) + "\n")
-            return output_path
+            return out
 
         if fmt == "csv":
             # Flatten clusters: one row per file with cluster_id
             # Choose a stable set of fields (path, size, mtime_ns, strong_hash)
-            with open(output_path, "w", newline="", encoding="utf-8") as f:
+            with open(out, "w", newline="", encoding="utf-8") as f:
                 writer = None
                 cluster_id = 1
                 for cluster in clusters:
@@ -79,6 +75,6 @@ class ReportService:
                             writer.writeheader()
                         writer.writerow(row)
                     cluster_id += 1
-            return output_path
+            return out
 
         raise ValueError(f"Unsupported format: {fmt}")

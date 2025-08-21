@@ -41,7 +41,16 @@ Run the CLI:
 
 ```bash
 similitude scan /path/to/dir
+
+# writes to ./duplicates.json by default
 similitude report --fmt json
+
+# write to a directory (auto-named file)
+similitude report --fmt json --out .
+
+# or specify a full file path
+similitude report --fmt json --out .\reports\my-duplicates.json
+
 ```
 
 Example:  
