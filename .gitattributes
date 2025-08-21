@@ -1,0 +1,9 @@
+# Normalize to LF in repo; Git converts to CRLF on checkout on Windows if core.autocrlf is true
+* text=auto
+
+# Keep these as binary (no EOL normalization)
+*.png binary
+*.jpg binary
+*.db binary
+*.db-wal binary
+*.db-shm binary
