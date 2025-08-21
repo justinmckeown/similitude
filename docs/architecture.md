@@ -1,25 +1,25 @@
 # 🏗️ Similitude Architecture
 
-Similitude is designed as a **Hexagonal / Clean Architecture** system, following SOLID principles.  
+Similitude is designed as a **Hexagonal / Clean Architecture** system, following SOLID principles.
 This ensures the project is modular, testable, and extensible as it evolves from exact duplicate detection to full file intelligence.
 
 ---
 
 ## 🎯 Design Patterns in Use
 
-- **Hexagonal Architecture (Ports & Adapters):**  
-  Core logic depends on abstract ports; details are in adapters.  
-- **Clean Architecture / Onion Architecture:**  
-  Domain at the center, services around it, adapters at the edge.  
-- **Strategy Pattern:**  
-  Pluggable hashing strategies (SHA-256, perceptual, fuzzy).  
-- **Repository Pattern:**  
-  Abstract persistence behind an Index port.  
-- **Pipeline Pattern:**  
-  Hashing stages: pre-hash → strong-hash → optional similarity.  
-- **Service Layer:**  
-  Encapsulates use-cases (scan, dedup, report).  
-- **Dependency Injection:**  
+- **Hexagonal Architecture (Ports & Adapters):**
+  Core logic depends on abstract ports; details are in adapters.
+- **Clean Architecture / Onion Architecture:**
+  Domain at the center, services around it, adapters at the edge.
+- **Strategy Pattern:**
+  Pluggable hashing strategies (SHA-256, perceptual, fuzzy).
+- **Repository Pattern:**
+  Abstract persistence behind an Index port.
+- **Pipeline Pattern:**
+  Hashing stages: pre-hash → strong-hash → optional similarity.
+- **Service Layer:**
+  Encapsulates use-cases (scan, dedup, report).
+- **Dependency Injection:**
   Ports are injected into services; wiring happens in CLI.
 
 ---
@@ -158,5 +158,5 @@ similitude/
 ---
 
 ## 📜 License
-Similitude is licensed under the **Apache License 2.0**.  
+Similitude is licensed under the **Apache License 2.0**.
 All code stubs should include the appropriate license header.

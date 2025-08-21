@@ -1,0 +1,44 @@
+# Run `pre-commit install` and `pre-commit install --hook-type pre-push`
+# to enable these hooks locally.
+
+repos:
+  # --- generic hygiene ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+
+  # --- code formatting (Black) ---
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  # --- linting (Ruff) ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.3
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+
+  # --- local hooks (run in your current venv) ---
+  # Use "pre-push" stage for the slower checks so commits stay snappy.
+  - repo: local
+    hooks:
+      - id: mypy-pre-push
+        name: mypy (types)
+        entry: python -m mypy src/similitude
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
+
+      - id: pytest-pre-push
+        name: pytest (fast suite)
+        entry: python -m pytest -q
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

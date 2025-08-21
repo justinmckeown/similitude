@@ -11,11 +11,11 @@
 
 ## ✨ Features
 
-- 🚀 Fast file system scanning  
-- 🧩 Duplicate detection using strong hashes (SHA256)  
-- 🔎 Pluggable architecture (filesystem, index, hashers)  
-- 💾 SQLite-backed metadata store  
-- 📊 JSON reports of duplicate clusters  
+- 🚀 Fast file system scanning
+- 🧩 Duplicate detection using strong hashes (SHA256)
+- 🔎 Pluggable architecture (filesystem, index, hashers)
+- 💾 SQLite-backed metadata store
+- 📊 JSON reports of duplicate clusters
 
 ---
 
@@ -53,7 +53,7 @@ similitude report --fmt json --out .\reports\my-duplicates.json
 
 ```
 
-Example:  
+Example:
 
 ```bash
 similitude scan ~/Documents
@@ -91,17 +91,17 @@ similitude/
 
 ## 🤝 Contributing
 
-Contributions, issues, and feature requests are welcome!  
+Contributions, issues, and feature requests are welcome!
 Feel free to check the [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **Apache 2.0 License**.  
+This project is licensed under the **Apache 2.0 License**.
 See the [LICENSE](LICENSE) file for details.
 
 ---
 
 ### 🙌 Acknowledgements
-Inspired by classic duplicate finders, rebuilt with modern Python tooling and privacy engineering goals.  
+Inspired by classic duplicate finders, rebuilt with modern Python tooling and privacy engineering goals.

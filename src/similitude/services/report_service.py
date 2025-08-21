@@ -13,7 +13,6 @@
 import csv
 import json
 from pathlib import Path
-from typing import Literal
 
 from ..ports.index import IndexPort
 from .duplicate_service import DuplicateService
@@ -27,9 +26,7 @@ class ReportService:
     def __init__(self, index: IndexPort) -> None:
         self._index = index
 
-    def write_duplicates(
-        self, out: Path, fmt: Literal["csv", "json", "ndjson"] = "json"
-    ) -> Path:
+    def write_duplicates(self, out: Path, fmt: str = "json") -> Path:
         """
         Write an exact-duplicate report to `output_path` in the specified format.
 
