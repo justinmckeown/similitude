@@ -27,8 +27,9 @@ class ReportService:
     def __init__(self, index: IndexPort) -> None:
         self._index = index
 
-
-    def write_duplicates( self, out: Path, fmt: Literal['csv', 'json', 'ndjson']='json') -> Path:
+    def write_duplicates(
+        self, out: Path, fmt: Literal["csv", "json", "ndjson"] = "json"
+    ) -> Path:
         """
         Write an exact-duplicate report to `output_path` in the specified format.
 
@@ -40,7 +41,7 @@ class ReportService:
         """
         clusters = list(DuplicateService(self._index).clusters())
 
-        out = Path(out) #FIXME: don't need this line I think 
+        out = Path(out)  # FIXME: don't need this line I think
         out.parent.mkdir(parents=True, exist_ok=True)
 
         if fmt == "json":

@@ -172,7 +172,7 @@ def report(
         "--out",
         "--output",
         help="Write report to this path. If a directory is provided, the file will be named 'duplicates.<fmt>' inside it. "
-             "If omitted entirely, defaults to './duplicates.<fmt>'.",
+        "If omitted entirely, defaults to './duplicates.<fmt>'.",
         resolve_path=True,
     ),
 ):
