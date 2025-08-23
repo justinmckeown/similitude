@@ -18,6 +18,7 @@ repos:
       - id: black
         language_version: python3
 
+
   # --- linting (Ruff) ---
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.3

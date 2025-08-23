@@ -11,12 +11,15 @@
 # limitations under the License.
 
 import fnmatch
+import logging
 from pathlib import Path
 from typing import Iterable, Optional
 
 from ..ports.filesystem import FilesystemPort
 from ..ports.hasher import HasherPort
 from ..ports.index import IndexPort
+
+logger = logging.getLogger(__name__)
 
 
 class ScanService:
@@ -60,7 +63,6 @@ class ScanService:
     def scan(self, root: Path) -> int:
         """
         Scan a directory tree rooted at `root`.
-
         Returns:
             Number of files processed (inserted or updated in the index).
         """
@@ -74,7 +76,8 @@ class ScanService:
             try:
                 if not p.is_file():
                     continue
-            except Exception:
+            except Exception as e:
+                logger.warning(f"ScanService.scan: {e}")
                 continue
 
             if self._ignored(p):

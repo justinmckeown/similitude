@@ -179,23 +179,24 @@ def report(
     """
     Generate a duplicate report from the index.
     """
-    index = SQLiteIndex(db)
-    report = ReportService(index)
+    # index = SQLiteIndex(db)
+    with SQLiteIndex(db) as index:
+        report = ReportService(index)
 
-    # Determine target path:
-    # - no --out  -> ./duplicates.<fmt>
-    # - --out DIR -> DIR/duplicates.<fmt>
-    # - --out FILE -> FILE
-    if out is None:
-        target = Path(f"duplicates.{fmt}")
-    else:
-        out = Path(out)
-        if out.exists() and out.is_dir():
-            target = out / f"duplicates.{fmt}"
+        # Determine target path:
+        # - no --out  -> ./duplicates.<fmt>
+        # - --out DIR -> DIR/duplicates.<fmt>
+        # - --out FILE -> FILE
+        if out is None:
+            target = Path(f"duplicates.{fmt}")
         else:
-            # If the path doesn't exist yet, we treat it as a file path.
-            # (ReportService will create parent dirs.)
-            target = out
+            out = Path(out)
+            if out.exists() and out.is_dir():
+                target = out / f"duplicates.{fmt}"
+            else:
+                # If the path doesn't exist yet, we treat it as a file path.
+                # (ReportService will create parent dirs.)
+                target = out
 
-    written = report.write_duplicates(target, fmt=fmt)
-    typer.echo(f"Wrote {fmt} report to {written}")
+        written = report.write_duplicates(target, fmt=fmt)
+        typer.echo(f"Wrote {fmt} report to {written}")

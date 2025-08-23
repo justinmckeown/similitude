@@ -7,3 +7,5 @@
 *.db binary
 *.db-wal binary
 *.db-shm binary
+*.py text eol=lf
+*.sh text eol=lf
