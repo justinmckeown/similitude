@@ -10,24 +10,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from abc import ABC, abstractmethod
+from __future__ import annotations
 from typing import Any, Iterable
 
+from typing import Protocol, Sequence
 
-class IndexPort(ABC):
-    """Abstract persistence interface for file metadata and hashes."""
 
-    @abstractmethod
-    def upsert_file(self, file_meta: dict) -> int:
-        """Insert or update a file record. Return its ID."""
-        raise NotImplementedError
+class IndexPort(Protocol):
+    """Abstract persistence interface for file metadata and hashes.
 
-    @abstractmethod
-    def upsert_hashes(self, file_id: int, hashes: dict) -> None:
-        """Insert or update hash values for a file."""
-        raise NotImplementedError
+    Protocol → structural typing: any object with these methods conforms.
+    """
 
-    @abstractmethod
-    def find_duplicates(self) -> Iterable[Any]:
-        """Return groups of files that share identical strong hashes."""
-        raise NotImplementedError
+    def upsert_file(self, file_meta: dict) -> int: ...
+    def upsert_hashes(self, file_id: int, hashes: dict) -> None: ...
+    def find_duplicates(self) -> Iterable[Sequence[dict[str, Any]]]: ...
+
+
+# class IndexPort(ABC):
+#    """Abstract persistence interface for file metadata and hashes."""
+#
+#    @abstractmethod
+#    def upsert_file(self, file_meta: dict) -> int:
+#        """Insert or update a file record. Return its ID."""
+#        raise NotImplementedError
+#
+#    @abstractmethod
+#    def upsert_hashes(self, file_id: int, hashes: dict) -> None:
+#        """Insert or update hash values for a file."""
+#        raise NotImplementedError
+#
+#    @abstractmethod
+#    def find_duplicates(self) -> Iterable[Any]:
+#        """Return groups of files that share identical strong hashes."""
+#        raise NotImplementedError
+#

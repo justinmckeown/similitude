@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import csv
 import json
-from typing import Iterable, Any, List
+from typing import Iterable, Sequence, Any, List
 from pathlib import Path
 
 from ..ports.index import IndexPort
@@ -24,7 +24,7 @@ class ReportService:
     def __init__(self, index: IndexPort) -> None:
         self._index = index
 
-    def _clusters(self) -> Iterable[list[dict[str, Any]]]:
+    def _clusters(self) -> Iterable[Sequence[dict[str, Any]]]:
         # Keep the indirection through DuplicateService for separation of concerns.
         return DuplicateService(self._index).clusters()
 
