@@ -26,10 +26,11 @@ dev = [
     "mypy>=1.8.0",
     ]
 
-
 [project.scripts]
 similitude = "similitude.cli.app:app"
 
-
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=src/similitude --cov-report=term-missing --cov-fail-under=85"

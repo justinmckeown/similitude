@@ -39,7 +39,8 @@ repos:
 
       - id: pytest-pre-push
         name: pytest (fast suite)
-        entry: python -m pytest -q
+        entry: pytest --cov=src/similitude --cov-report=term-missing --cov-fail-under=85 #OLD: python -m pytest -q
         language: system
+        types: [python]
         pass_filenames: false
         stages: [pre-push]
