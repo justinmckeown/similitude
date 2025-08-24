@@ -12,7 +12,7 @@
 
 import os
 from pathlib import Path
-from typing import Iterator, Optional, BinaryIO
+from typing import Iterator, Optional, BinaryIO, List
 
 
 import hashlib
@@ -20,8 +20,13 @@ import typer
 
 from ..ports.filesystem import FilesystemPort
 from ..ports.hasher import HasherPort
+from ..ports.similarity import SimilarityPort
+
 from ..services import ScanService, ReportService
 from ..adapters.index.sqlite_index import SQLiteIndex
+from ..adapters.similarity.image_phash import ImagePHash
+from ..adapters.similarity.ssdeep_adapter import SsdeepAdapter
+
 from ..logging_config import setup_logging
 
 setup_logging()
@@ -126,7 +131,9 @@ class SHA256Hasher(HasherPort):
 # ------------------------------
 
 
-def _wire(db_path: str) -> tuple[ScanService, ReportService]:
+def _wire(
+    db_path: str, enable: Optional[List[str]] = None
+) -> tuple[ScanService, ReportService]:
     """
     Minimal composition root:
       LocalFS + PreHasher + SHA256Hasher + DummySQLiteIndex
@@ -135,19 +142,46 @@ def _wire(db_path: str) -> tuple[ScanService, ReportService]:
     pre = PreHasher(first_n=1 << 20)  # 1 MiB
     strong = SHA256Hasher()
     index = SQLiteIndex(db_path)
-    scan = ScanService(fs, pre, strong, index)
+
+    features = {s.strip().lower() for s in (enable or []) if s.strip()}
+    adapters: List[SimilarityPort] = []
+    enable_phash = "phash" in features
+    enable_ssdeep = "ssdeep" in features
+
+    if enable_phash:
+        adapters.append(ImagePHash())
+    if enable_ssdeep:
+        adapters.append(SsdeepAdapter())
+
+    scan = ScanService(
+        fs,
+        pre,
+        strong,
+        index,
+        similarity_adapters=adapters,
+        enable_phash=enable_phash,
+        enable_ssdeep=enable_ssdeep,
+    )
+
     report = ReportService(index)
     return scan, report
 
 
 @app.command()
-def scan(path: str, db: str = "similitude.db"):
+def scan(
+    path: str,
+    db: str = "similitude.db",
+    enable: Optional[str] = typer.Option(
+        None, "--enable", help="Comma-separated features: phash,ssdeep"
+    ),
+):
     """
     Scan a directory, compute pre-hash + strong-hash, and update the index.
     """
-    scan_service, _ = _wire(db)
+    enable_list = enable.split(",") if enable else None
+    scan_service, _ = _wire(db, enable=enable_list)
     count = scan_service.scan(Path(path))
-    typer.echo(f"Scanned {path}; processed {count} files; index: {db} (placeholder)")
+    typer.echo(f"Scanned {path}; processed {count} files; index: {db}")
 
 
 @app.command()

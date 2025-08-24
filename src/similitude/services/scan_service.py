@@ -18,6 +18,7 @@ from typing import Iterable, Optional
 from ..ports.filesystem import FilesystemPort
 from ..ports.hasher import HasherPort
 from ..ports.index import IndexPort
+from ..ports.similarity import SimilarityPort
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +45,9 @@ class ScanService:
         *,
         ignore_patterns: Optional[Iterable[str]] = None,
         chunk_size: int = 1 << 20,  # 1 MiB (reserved for future streaming tweaks)
+        similarity_adapters: Optional[list[SimilarityPort]] = None,
+        enable_phash: bool = False,
+        enable_ssdeep: bool = False,
     ) -> None:
         self._fs = fs
         self._pre_hasher = pre_hasher
@@ -51,7 +55,12 @@ class ScanService:
         self._index = index
         self._ignore_patterns = tuple(ignore_patterns or ())
         self._chunk_size = int(chunk_size)
-        print("ScanService loaded from:", __file__)
+
+        self._similarity = tuple(similarity_adapters or [])
+        self._enable_phash = bool(enable_phash)
+        self._enable_ssdeep = bool(enable_ssdeep)
+
+        logger.debug("ScanService loaded from:", __file__)
 
     def _ignored(self, path: Path) -> bool:
         name = str(path)
@@ -99,16 +108,36 @@ class ScanService:
             # 3) Hashing (non-fatal if it fails)
             pre_hash = None
             strong_hash = None
+            phash = None
+            ssdeep = None
             try:
                 with open(p, "rb") as fh:
                     pre_hash = self._pre_hasher.hash_stream(fh)
             except Exception:
                 pass
+
             try:
                 with open(p, "rb") as fh:
                     strong_hash = self._strong_hasher.hash_stream(fh)
             except Exception:
                 pass
+
+            # Perceptual / fuzzy (best-effort and only if enabled)
+            if self._enable_phash:
+                for sim in self._similarity:
+                    try:
+                        phash = sim.phash_for_image(str(p)) or phash
+                    except Exception as e:
+                        logger.error(f"ScanService.scan (phash): {e}")
+                        pass
+            if self._enable_ssdeep:
+                for sim in self._similarity:
+                    try:
+                        with open(p, "rb") as fh:
+                            ssdeep = sim.ssdeep_for_stream(fh) or ssdeep
+                    except Exception as e:
+                        logger.error(f"ScanService.scan (ssdeep): {e}")
+                        pass
 
             # 4) Upsert hashes (best-effort)
             try:
@@ -117,8 +146,8 @@ class ScanService:
                     {
                         "pre_hash": pre_hash,
                         "strong_hash": strong_hash,
-                        "phash": None,
-                        "ssdeep": None,
+                        "phash": phash,
+                        "ssdeep": ssdeep,
                     },
                 )
             except Exception:

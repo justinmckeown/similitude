@@ -1,9 +1,11 @@
 # 🌀 Similitude
 
 [![CI](https://github.com/justinmckeown/similitude/actions/workflows/ci.yml/badge.svg)](https://github.com/justinmckeown/similitude/actions/workflows/ci.yml)
+![Coverage](https://img.shields.io/badge/coverage-90%25-brightgreen)
 [![Python Version](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 ![Types: mypy](https://img.shields.io/badge/types-mypy-informational)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
+
 
 **Similitude** is a Python tool for 📂 file intelligence and 🔍 duplicate detection with similarity awareness. The devleopment goal is to provide Intelligence for managing data you no longer control.
 

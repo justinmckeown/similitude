@@ -25,6 +25,8 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.8.0",
     ]
+phash  = ["Pillow>=10.0.0"]
+ssdeep = ["ssdeep>=3.4; platform_system != 'Windows'"]
 
 [project.scripts]
 similitude = "similitude.cli.app:app"
