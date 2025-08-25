@@ -36,3 +36,10 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "--cov=src/similitude --cov-report=term-missing --cov-fail-under=80"
+
+[tool.mypy]
+
+
+[[tool.mypy.overrides]]
+module = "ssdeep"
+ignore_missing_imports = true
