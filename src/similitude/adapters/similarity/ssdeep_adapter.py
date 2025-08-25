@@ -15,6 +15,7 @@ class SsdeepAdapter(SimilarityPort):
     def name(self) -> str:
         return "ssdeep"
 
+    # TODO: Implement fully
     def phash_for_image(self, path: str) -> Optional[str]:
         return None
 

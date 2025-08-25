@@ -11,11 +11,12 @@
 # limitations under the License.
 
 from __future__ import annotations
-
+import logging
 import sqlite3
 import time
 from pathlib import Path
 from typing import Any, Iterable, Iterator, cast
+
 
 DDL = """
 PRAGMA foreign_keys=ON;
@@ -62,6 +63,8 @@ CREATE TABLE IF NOT EXISTS kv (
 );
 """
 
+logger = logging.getLogger(__name__)
+
 
 class SQLiteIndex:
     """
@@ -94,11 +97,8 @@ class SQLiteIndex:
         self.close()
 
     def __del__(self) -> None:
-        try:
-            if getattr(self, "_conn", None) is not None:
-                self._conn.close()
-        except Exception:
-            pass
+        if getattr(self, "_conn", None) is not None:
+            self._conn.close()
 
     # --- public API ---------------------------------------------------------
 

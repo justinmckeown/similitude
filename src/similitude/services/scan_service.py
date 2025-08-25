@@ -95,7 +95,8 @@ class ScanService:
             # 1) Stat via FS port
             try:
                 meta = self._fs.stat(p)
-            except Exception:
+            except Exception as e:
+                logger.warning(f"ScanService.scan: {e}")
                 continue  # unreadable; skip
 
             # 2) Upsert file row (count as processed once this succeeds).
