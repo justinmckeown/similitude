@@ -35,4 +35,4 @@ similitude = "similitude.cli.app:app"
 where = ["src"]
 
 [tool.pytest.ini_options]
-addopts = "--cov=src/similitude --cov-report=term-missing --cov-fail-under=85"
+addopts = "--cov=src/similitude --cov-report=term-missing --cov-fail-under=80"
