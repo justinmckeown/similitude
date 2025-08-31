@@ -13,7 +13,7 @@
 import os
 from pathlib import Path
 from typing import Iterator, Optional, BinaryIO, List
-
+import logging
 
 import hashlib
 import typer
@@ -33,10 +33,32 @@ setup_logging()
 
 app = typer.Typer(help="Similitude CLI - File intelligence and duplicate detection")
 
+FEATURES: set[str] = {"phash", "ssdeep"}  # TODO: add "simhash" later when available
+
+logger = logging.getLogger(__name__)
+
 
 # ------------------------------
 # Placeholder Adapters (stubs)
+# CLI Commands
 # ------------------------------
+
+
+def _parse_enable(enable: Optional[str]) -> set[str]:
+    """
+    Parse and validate --enable value into a normalised set of feature names.
+    Raises Typer BadParameter if an unknown flag is provided.
+    """
+    if not enable:
+        return set()
+    parts = {p.strip().lower() for p in enable.split(",") if p.strip()}
+    unknown = parts - FEATURES
+    if unknown:
+        raise typer.BadParameter(
+            f"Unknown feature(s): {', '.join(sorted(unknown))}. "
+            f"Valid options: {', '.join(sorted(FEATURES))}"
+        )
+    return parts
 
 
 class LocalFS(FilesystemPort):
@@ -132,55 +154,76 @@ class SHA256Hasher(HasherPort):
 
 
 def _wire(
-    db_path: str, enable: Optional[List[str]] = None
+    db_path: str, enable: Optional[str] = None
 ) -> tuple[ScanService, ReportService]:
     """
     Minimal composition root:
-      LocalFS + PreHasher + SHA256Hasher + DummySQLiteIndex
+      LocalFS + PreHasher + SHA256Hasher + SQLiteIndex
     """
+    features = _parse_enable(enable)
+    enable_phash = "phash" in features
+    enable_ssdeep = "ssdeep" in features
+
     fs = LocalFS()
     pre = PreHasher(first_n=1 << 20)  # 1 MiB
     strong = SHA256Hasher()
     index = SQLiteIndex(db_path)
 
-    features = {s.strip().lower() for s in (enable or []) if s.strip()}
     adapters: List[SimilarityPort] = []
-    enable_phash = "phash" in features
-    enable_ssdeep = "ssdeep" in features
 
     if enable_phash:
         adapters.append(ImagePHash())
+
+    # NOTE: having some issues with SSDeep so knocking this out while working on this.
     if enable_ssdeep:
         adapters.append(SsdeepAdapter())
 
     scan = ScanService(
-        fs,
-        pre,
-        strong,
-        index,
+        fs=fs,
+        pre_hasher=pre,
+        strong_hasher=strong,
+        index=index,
         similarity_adapters=adapters,
         enable_phash=enable_phash,
         enable_ssdeep=enable_ssdeep,
     )
-
     report = ReportService(index)
     return scan, report
 
 
 @app.command()
 def scan(
-    path: str,
-    db: str = "similitude.db",
+    path: Path = typer.Option(
+        ...,
+        "--path",
+        exists=True,
+        file_okay=False,
+        dir_okay=True,
+        resolve_path=True,
+        help="Directory to scan",
+    ),
+    db: Path = typer.Option(
+        "similitude.db",
+        "--db",
+        help="Path to SQLite DB file",
+        resolve_path=True,
+    ),
     enable: Optional[str] = typer.Option(
         None, "--enable", help="Comma-separated features: phash,ssdeep"
     ),
+    verbose: bool = typer.Option(False, "--verbose", help="Enable verbose logging"),
 ):
     """
     Scan a directory, compute pre-hash + strong-hash, and update the index.
     """
-    enable_list = enable.split(",") if enable else None
-    scan_service, _ = _wire(db, enable=enable_list)
+    if verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
+        logger.debug("Verbose logging enabled")
+
+    # Parse/validate once; _wire handles adapter consutrction + flags
+    scan_service, _ = _wire(db, enable=enable)
     count = scan_service.scan(Path(path))
+
     typer.echo(f"Scanned {path}; processed {count} files; index: {db}")
 
 

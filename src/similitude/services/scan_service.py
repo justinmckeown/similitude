@@ -60,7 +60,7 @@ class ScanService:
         self._enable_phash = bool(enable_phash)
         self._enable_ssdeep = bool(enable_ssdeep)
 
-        logger.debug("ScanService loaded from:", __file__)
+        logger.debug(f"ScanService loaded from: {__file__}")
 
     def _ignored(self, path: Path) -> bool:
         name = str(path)
