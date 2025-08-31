@@ -24,7 +24,7 @@ def test_cli_scan_and_report_roundtrip(tmp_path: Path):
     out = tmp_path / "duplicates.json"
 
     # Act
-    result_scan = runner.invoke(app, ["scan", "--path", Path(root), "--db", Path(db)])
+    result_scan = runner.invoke(app, ["scan", "--path", str(root), "--db", Path(db)])
     assert result_scan.exit_code == 0
 
     result_report = runner.invoke(
