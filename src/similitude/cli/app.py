@@ -260,7 +260,7 @@ def report(
     with SQLiteIndex(db) as index:
         report = ReportService(index)
 
-        # Determine target path:
+        # IMPORTANT: Determine target path:
         # - no --out  -> ./duplicates.<fmt>
         # - --out DIR -> DIR/duplicates.<fmt>
         # - --out FILE -> FILE
