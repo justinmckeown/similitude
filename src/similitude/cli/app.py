@@ -12,7 +12,7 @@
 
 import os
 from pathlib import Path
-from typing import Iterator, Optional, BinaryIO, List
+from typing import Iterator, Optional, BinaryIO, List, Union
 import logging
 
 import hashlib
@@ -154,7 +154,7 @@ class SHA256Hasher(HasherPort):
 
 
 def _wire(
-    db_path: str, enable: Optional[str] = None
+    db_path: Union[str, Path], enable: Optional[str] = None
 ) -> tuple[ScanService, ReportService]:
     """
     Minimal composition root:
