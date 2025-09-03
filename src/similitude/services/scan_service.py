@@ -49,6 +49,7 @@ class ScanService:
         enable_phash: bool = False,
         enable_ssdeep: bool = False,
     ) -> None:
+        self._ignore = ignore_patterns or []
         self._fs = fs
         self._pre_hasher = pre_hasher
         self._strong_hasher = strong_hasher
@@ -72,21 +73,23 @@ class ScanService:
     def scan(self, root: Path) -> int:
         """
         Scan a directory tree rooted at `root`.
+
         Returns:
             Number of files processed (inserted or updated in the index).
         """
         root = Path(root)
         processed = 0
+        SMALL_READ_LIMIT = 8 << 20  # 8 MiB
 
         for path in self._fs.walk(root):
             p = Path(path)
 
-            # Optional safety; FilesystemPort.walk() should already yield files.
+            # FilesystemPort.walk() should already yield files; double-check defensively.
             try:
                 if not p.is_file():
                     continue
             except Exception as e:
-                logger.warning(f"ScanService.scan: {e}")
+                logger.warning("ScanService.scan: non-file path %s (%s)", p, e)
                 continue
 
             if self._ignored(p):
@@ -96,49 +99,113 @@ class ScanService:
             try:
                 meta = self._fs.stat(p)
             except Exception as e:
-                logger.warning(f"ScanService.scan: {e}")
+                logger.warning("ScanService.scan: stat failed for %s: %s", p, e)
                 continue  # unreadable; skip
 
             # 2) Upsert file row (count as processed once this succeeds).
             try:
                 file_id = self._index.upsert_file(meta)
                 processed += 1
-            except Exception:
-                continue  # DB issue; skip
+            except Exception as e:
+                logger.warning("ScanService.scan: upsert_file failed for %s: %s", p, e)
+                continue  # DB issue; skip this file
 
-            # 3) Hashing (non-fatal if it fails)
+            # 3) Hashing (best-effort; errors are non-fatal)
             pre_hash = None
             strong_hash = None
             phash = None
             ssdeep = None
+
+            # Use size from meta if available; otherwise fall back to os.stat
             try:
-                with open(p, "rb") as fh:
-                    pre_hash = self._pre_hasher.hash_stream(fh)
+                size = (
+                    int(meta.get("size"))
+                    if isinstance(meta, dict) and "size" in meta
+                    else p.stat().st_size
+                )
             except Exception:
-                pass
+                size = None
 
             try:
-                with open(p, "rb") as fh:
-                    strong_hash = self._strong_hasher.hash_stream(fh)
-            except Exception:
-                pass
+                if size is not None and size <= SMALL_READ_LIMIT:
+                    # Small file: read once into memory and feed both hashers
+                    try:
+                        data = p.read_bytes()
+                    except Exception as e:
+                        logger.debug(
+                            "ScanService.scan: read_bytes failed for %s: %s", p, e
+                        )
+                        data = None
 
-            # Perceptual / fuzzy (best-effort and only if enabled)
+                    if data is not None:
+                        try:
+                            from io import BytesIO
+
+                            pre_hash = self._pre_hasher.hash_stream(BytesIO(data))
+                        except Exception as e:
+                            logger.debug("Pre-hash failed for %s: %s", p, e)
+
+                        try:
+                            from io import BytesIO
+
+                            strong_hash = self._strong_hasher.hash_stream(BytesIO(data))
+                        except Exception as e:
+                            logger.debug("Strong-hash failed for %s: %s", p, e)
+                    else:
+                        # Fallback to streaming if read_bytes failed
+                        try:
+                            with open(p, "rb") as fh:
+                                pre_hash = self._pre_hasher.hash_stream(fh)
+                        except Exception as e:
+                            logger.debug("Pre-hash (stream) failed for %s: %s", p, e)
+
+                        try:
+                            with open(p, "rb") as fh:
+                                strong_hash = self._strong_hasher.hash_stream(fh)
+                        except Exception as e:
+                            logger.debug("Strong-hash (stream) failed for %s: %s", p, e)
+                else:
+                    # Large file: stream separately to avoid RAM spikes
+                    try:
+                        with open(p, "rb") as fh:
+                            pre_hash = self._pre_hasher.hash_stream(fh)
+                    except Exception as e:
+                        logger.debug("Pre-hash (stream) failed for %s: %s", p, e)
+
+                    try:
+                        with open(p, "rb") as fh:
+                            strong_hash = self._strong_hasher.hash_stream(fh)
+                    except Exception as e:
+                        logger.debug("Strong-hash (stream) failed for %s: %s", p, e)
+            except Exception as e:
+                logger.debug("Hashing setup failed for %s: %s", p, e)
+
+            # Perceptual / fuzzy (best-effort and only if enabled).
+            # Stop after first adapter that returns a value for each type.
             if self._enable_phash:
                 for sim in self._similarity:
                     try:
-                        phash = sim.phash_for_image(str(p)) or phash
+                        v = sim.phash_for_image(str(p))
+                        if v:
+                            phash = v
+                            break
                     except Exception as e:
-                        logger.error(f"ScanService.scan (phash): {e}")
-                        pass
+                        logger.warning(
+                            "ScanService.scan (phash) failed for %s: %s", p, e
+                        )
+
             if self._enable_ssdeep:
                 for sim in self._similarity:
                     try:
                         with open(p, "rb") as fh:
-                            ssdeep = sim.ssdeep_for_stream(fh) or ssdeep
+                            v = sim.ssdeep_for_stream(fh)
+                        if v:
+                            ssdeep = v
+                            break
                     except Exception as e:
-                        logger.error(f"ScanService.scan (ssdeep): {e}")
-                        pass
+                        logger.warning(
+                            "ScanService.scan (ssdeep) failed for %s: %s", p, e
+                        )
 
             # 4) Upsert hashes (best-effort)
             try:
@@ -151,7 +218,7 @@ class ScanService:
                         "ssdeep": ssdeep,
                     },
                 )
-            except Exception:
-                pass  # non-fatal
+            except Exception as e:
+                logger.debug("upsert_hashes failed for %s: %s", p, e)
 
         return processed
