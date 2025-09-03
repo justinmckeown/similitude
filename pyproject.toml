@@ -25,7 +25,7 @@ dev = [
     "ruff>=0.4.0",
     "mypy>=1.8.0",
     ]
-phash  = ["Pillow>=10.0.0"]
+phash  = ["pillow>=10.0.0"]
 ssdeep = ["ssdeep>=3.4; platform_system != 'Windows'"]
 
 [project.scripts]
@@ -42,4 +42,12 @@ addopts = "--cov=src/similitude --cov-report=term-missing --cov-fail-under=85"
 
 [[tool.mypy.overrides]]
 module = "ssdeep"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "PIL"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "PIL.*"
 ignore_missing_imports = true

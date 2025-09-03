@@ -20,9 +20,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+          cache: pip
 
-      - name: Install (dev)
-        run: pip install -e ".[dev]" hypothesis pytest-benchmark
+      - name: Install (dev + phash extras)
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,phash]" hypothesis pytest-benchmark
 
       - name: Ruff (lint)
         run: ruff check .
@@ -33,10 +36,17 @@ jobs:
       - name: Mypy
         run: mypy src/similitude
 
-      - name: Run tests (with coverage xml)
-        run: pytest -vv --maxfail=1 --cov-report=xml
+      - name: Run tests with coverage (xml + text)
+        run: |
+          pytest -vv \
+            --maxfail=1 \
+            --cov=src/similitude \
+            --cov-report=term-missing \
+            --cov-report=xml > coverage.txt
+          # also echo the terminal summary to CI log
+          tail -n +1 coverage.txt
 
-      - name: Upload raw coverage file (debug)
+      - name: Upload raw coverage.xml (debug)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -45,13 +55,15 @@ jobs:
 
       - name: Extract coverage percentage
         run: |
-          coverage=$(grep -Po 'TOTAL\s+\d+\s+\d+\s+\K\d+%' coverage.txt | tr -d '%')
-          echo "COVERAGE=$coverage" >> $GITHUB_ENV
+          # Find "TOTAL   stmts   miss   cover%" line from coverage.txt
+          pct=$(grep -Po 'TOTAL\s+\d+\s+\d+\s+\K\d+(?=%)' coverage.txt || echo "0")
+          echo "COVERAGE=$pct" >> $GITHUB_ENV
+          echo "Detected coverage: ${pct}%"
 
       - name: Generate coverage badge
         run: |
           mkdir -p badges
-          curl "https://img.shields.io/badge/coverage-${COVERAGE}%25-brightgreen" -o badges/coverage.svg
+          curl -sSfL "https://img.shields.io/badge/coverage-${COVERAGE}%25-brightgreen" -o badges/coverage.svg
 
       - name: Upload badge as artifact
         uses: actions/upload-artifact@v4
