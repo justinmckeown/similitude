@@ -117,15 +117,22 @@ class ScanService:
             ssdeep = None
 
             # Use size from meta if available; otherwise fall back to os.stat
+            size: int | None = None
             try:
-                size = (
-                    int(meta.get("size"))
-                    if isinstance(meta, dict) and "size" in meta
-                    else p.stat().st_size
-                )
+                if isinstance(meta, dict):
+                    raw_size = meta.get("size", None)
+                    if isinstance(raw_size, int):
+                        size = raw_size
+                    elif isinstance(raw_size, (str, bytes)):
+                        # Accept string/bytes sizes too
+                        try:
+                            size = int(raw_size)  # type: ignore[arg-type]
+                        except (ValueError, TypeError):
+                            size = None
+                if size is None:
+                    size = p.stat().st_size
             except Exception:
                 size = None
-
             try:
                 if size is not None and size <= SMALL_READ_LIMIT:
                     # Small file: read once into memory and feed both hashers
