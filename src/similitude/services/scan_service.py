@@ -60,6 +60,9 @@ class ScanService:
         self._similarity = tuple(similarity_adapters or [])
         self._enable_phash = bool(enable_phash)
         self._enable_ssdeep = bool(enable_ssdeep)
+        self._progress_every: int = (
+            0  # Progress ticker: = = disabled. Set by CLI after construction
+        )
 
         logger.debug(f"ScanService loaded from: {__file__}")
 
@@ -106,6 +109,9 @@ class ScanService:
             try:
                 file_id = self._index.upsert_file(meta)
                 processed += 1
+                # progress_tick
+                if self._progress_every and (processed % self._progress_every == 0):
+                    logger.info("Progress: processed %d files...", processed)
             except Exception as e:
                 logger.warning("ScanService.scan: upsert_file failed for %s: %s", p, e)
                 continue  # DB issue; skip this file

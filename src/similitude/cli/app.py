@@ -211,6 +211,16 @@ def scan(
     enable: Optional[str] = typer.Option(
         None, "--enable", help="Comma-separated features: phash,ssdeep"
     ),
+    progress: Optional[int] = typer.Option(
+        None,
+        "--progress",
+        help="Emit a progress tick every N files (e.g., 100). Omit to disable.",
+    ),
+    quiet: bool = typer.Option(
+        False,
+        "--quiet",
+        help="Suppress the final summary line.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", help="Enable verbose logging"),
 ):
     """
@@ -222,9 +232,18 @@ def scan(
 
     # Parse/validate once; _wire handles adapter consutrction + flags
     scan_service, _ = _wire(db, enable=enable)
+    # Configure progress ticker if requested
+    if progress is not None:
+        try:
+            scan_service._progress_every = max(0, int(progress))
+        except Exception:
+            raise typer.BadParameter("--progress must be an integer ≥ 0")
     count = scan_service.scan(Path(path))
 
     typer.echo(f"Scanned {path}; processed {count} files; index: {db}")
+
+    if not quiet:
+        typer.echo(f"Scanned {path}; processed {count} files; index: {db}")
 
 
 @app.command()
